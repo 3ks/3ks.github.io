@@ -1,1 +1,0 @@
-gorda.github.io
