@@ -10238,10 +10238,19 @@ fieldset[disabled] .select select:hover {
   padding: 3rem 1.5rem 6rem;
 }
 html {
+  height: 100%;
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+body > .section {
+  flex-grow: 1;
 }
 ::-webkit-scrollbar {
   width: 8px;
@@ -10724,6 +10733,10 @@ html {
   position: absolute;
   right: 0;
   top: 0;
+}
+.image .avatar {
+  height: 100%;
+  object-fit: cover;
 }
 .button.is-transparent {
   color: inherit;
@@ -11398,6 +11411,9 @@ figure.highlight .section {
     padding: 1.5rem 1rem;
   }
 }
+body {
+  background: url("https://cdn.sguan.top/makrdown/20200715124131.png") fixed;
+}
 code {
   color: #165eca;
   font-size: 1.05em;
@@ -11406,9 +11422,6 @@ code {
 .content blockquote {
   padding: 0.75em;
   border-radius: 1px;
-}
-body {
-  background: url("https://cdn.sguan.top/makrdown/20200715124131.png") fixed;
 }
 .navbar {
   background: #fff;
@@ -11451,4 +11464,22 @@ figure.highlight figcaption * {
 }
 .highlight-body::-webkit-scrollbar-thumb:hover {
   background: rgba(255,255,102,0.65);
+}
+article h1 {
+  font-size: 2.3rem !important;
+  font-weight: bolder !important;
+}
+article h2,
+article h3,
+article h4 {
+  font-weight: bold !important;
+}
+article h2 {
+  font-size: 1.9rem !important;
+}
+article h3 {
+  font-size: 1.6rem !important;
+}
+article h4 {
+  font-size: 1.3rem !important;
 }
