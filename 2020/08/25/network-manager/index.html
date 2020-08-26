@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.1"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>Network Manager 入门 - 官余棚的博客</title><meta description="Network Manager 入门笔记，完成基本的网络配置"><meta property="og:type" content="article"><meta property="og:title" content="Network Manager 入门"><meta property="og:url" content="http://3ks.github.io/2020/08/25/network-manager/"><meta property="og:site_name" content="官余棚的博客"><meta property="og:description" content="Network Manager 入门笔记，完成基本的网络配置"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.sguan.top/markdown/20200825165456.png"><meta property="article:published_time" content="2020-08-25T09:00:31.000Z"><meta property="article:modified_time" content="2020-08-26T14:20:59.514Z"><meta property="article:author" content="官余棚"><meta property="article:tag" content="NetworkManager"><meta property="article:tag" content="NM"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.sguan.top/markdown/20200825165456.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://3ks.github.io/2020/08/25/network-manager/"},"headline":"官余棚的博客","image":["https://cdn.sguan.top/markdown/20200825165456.png"],"datePublished":"2020-08-25T09:00:31.000Z","dateModified":"2020-08-26T14:20:59.514Z","author":{"@type":"Person","name":"官余棚"},"description":"Network Manager 入门笔记，完成基本的网络配置"}</script><link rel="canonical" href="http://3ks.github.io/2020/08/25/network-manager/"><link rel="icon" href="https://cdn.sguan.top/makrdown/favicon.svg"><link rel="stylesheet" href="https://static.sguan.top/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="https://static.sguan.top/css/default.css"> <style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-146442818-2" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'UA-146442818-2');</script><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="https://cdn.sguan.top/makrdown/logo.svg" alt="官余棚的博客" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-08-25T09:00:31.000Z" title="2020-08-25T09:00:31.000Z">2020-08-25</time><span class="level-item"><a class="link-muted" href="/categories/network/">network</a><span> / </span><a class="link-muted" href="/categories/network/NetworkManager/">NetworkManager</a></span><span class="level-item">10 分钟 读完 (大约 1559 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Network Manager 入门</h1><div class="content"><p>Network Manager 入门笔记，完成基本的网络配置</p>
+<a id="more"></a>
+
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><code>NetworkManager(NM)</code> 是 2004 年 Red Hat 启动的项目，旨在能够让 Linux 用户更轻松地处理现代网络需求，尤其是无线网络，能自动发现网卡并配置 IP 地址。</p>
+<p>在 rhel8/centos8 上，network.service 已被废弃，我们只能通过 NetworkManager 进行网络管理。</p>
+<p>当然，我们不需要直接使用 NetworkManger 管理网络，我们可以通过下面这些工具进行 NetworkManger 管理，他们类似于 NetworkManger 客户端：</p>
+<ul>
+<li>nmcli：命令行。这是最常用的工具，本文将详细讲解该工具使用。</li>
+<li>nmtui：在shell终端开启文本图形界面。示意图见本文最后的Tips</li>
+<li>Freedesktop applet：如GNOME上自带的网络管理工具</li>
+<li>cockpit：redhat 自带的基于 web 图形界面的管理工具，具有 dashborad 和基础管理功能。</li>
+</ul>
+<p>本文只介绍 NetworkManager 相关知识以及 nmcli 的使用方法。</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>在 NM 中，有两个主要对象：<code>设备</code>（device）和 <code>连接</code>（connection），它们是一对多的关系，即一个设备可以对应多个连接。但是，一个设备只能有一个活跃的连接，其它连接会变为非活跃、不可用。</p>
+<h3 id="设备（device）"><a href="#设备（device）" class="headerlink" title="设备（device）"></a>设备（device）</h3><p>我们可以通过命令 <code>nmcli d</code> 或 <code>nmcli device</code> 者查看当前设备状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ nmcli d</span><br><span class="line">DEVICE  TYPE      STATE      CONNECTION</span><br><span class="line">ens33   ethernet  connected  ens33</span><br><span class="line">lo      loopback  unmanaged  --</span><br></pre></td></tr></table></figure>
+
+<p>输出包含四列，分别表示：设备名、设备类型、状态、激活地连接名。</p>
+<p>设备名和连接名可以相同，但他们是不同的对象，在后续的操作中注意不要被同名的情况误导。</p>
+<p><code>并非</code>所有的设备都会被 NM 接管，设备常见的状态有：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>connected</td>
+<td>已被 NM 接管，设备当前<code>有</code>活跃的连接</td>
+</tr>
+<tr>
+<td>disconnected</td>
+<td>已被 NM 接管，设备当前<code>没有</code>活跃的连接</td>
+</tr>
+<tr>
+<td>unmanaged</td>
+<td>未被 NM 接管，但可以通过命令接管该设备</td>
+</tr>
+<tr>
+<td>unavailable</td>
+<td>未被 NM 接管，不可用，NM 无法接管该设备，通常由网卡被 down 掉导致，例如：ip link set ethX down</td>
+</tr>
+</tbody></table>
+<p>NM 只能管理 <code>已被 NM 接管</code> 设备的网络配置。</p>
+<h3 id="连接（connection）"><a href="#连接（connection）" class="headerlink" title="连接（connection）"></a>连接（connection）</h3><p>我们可以通过命令 <code>nmcli c</code> 或 <code>nmcli connection</code> 者查看当前连接状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ nmcli c</span><br><span class="line">NAME   UUID                                  TYPE      DEVICE</span><br><span class="line">ens33  d20368c4-4112-4773-b3a5-c8d06907c349  ethernet  ens33</span><br></pre></td></tr></table></figure>
+
+<p>输出包含四列，分别表示：连接名名、唯一标识 UUID、连接类型、对应的设备名。</p>
+<p>连接的常见状态有：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>connected</td>
+<td>活跃的连接</td>
+</tr>
+<tr>
+<td>disconnected</td>
+<td>非活跃的连接</td>
+</tr>
+</tbody></table>
+<p>连接的状态由输出结果的颜色来判断，绿色为活跃，正常颜色为非活跃：</p>
+<p><img src="https://cdn.sguan.top/markdown/20200825165456.png" alt=""></p>
+<p>你也可以执行 <code>nmcli device</code> 根据设备的状态及其对应的连接来判断连接的状态。</p>
+<h2 id="基本网络配置"><a href="#基本网络配置" class="headerlink" title="基本网络配置"></a>基本网络配置</h2><p>想要正常访问互联网，需要配置：IP 配置方法（DHCP 或手动）、IP 地址、子网掩码、网关、DNS。而服务器一般使用静态 IP：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 配置</span></span><br><span class="line">nmcli c mod ens33 ipv4.method <span class="string">'manual'</span> ipv4.addr <span class="string">'192.168.7.10/24'</span>  ipv4.gateway <span class="string">'192.168.7.2'</span> ipv4.dns <span class="string">'8.8.8.8'</span></span><br><span class="line"><span class="comment"># 使更改生效</span></span><br><span class="line">nmcli c up ens33</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>在 nmcli 中，很多关键字都支持缩写，c 是 connection 的缩写，mod 是 modify 的缩写，d 是 device 的缩写。</li>
+<li>并不是每一个<code>连接</code>都要配置 DNS，因为默认情况下，有一个系统默认的全局 DNS（/etc/resolve.conf）。只有当你需要为这个<code>连接</code>指定特别的 DNS 时才需要配置。</li>
+<li>ipv4.addr 等属性列表，可以通过命令 <code>nmcli c show ens33</code> 查看，然后根据自己的需要进行修改。</li>
+</ul>
+<h2 id="创建连接"><a href="#创建连接" class="headerlink" title="创建连接"></a>创建连接</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建连接</span></span><br><span class="line">nmcli c add <span class="built_in">type</span> ethernet ifname ens33 con-name eth0 ipv4.method <span class="string">'manual'</span> ipv4.addr <span class="string">'192.168.7.11/24'</span>  ipv4.gateway <span class="string">'192.168.7.2'</span></span><br><span class="line"><span class="comment"># 激活（切换）连接</span></span><br><span class="line">nmcli c up eth0</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>type ethernet 指定连接类型</li>
+<li>ifname ens33 指定对应的设备名</li>
+<li>con-name eth0 指定连接名，可以忽略，此时会自动生成连接名</li>
+<li>ipv4.method 等后续配置，可以在创建时就指定，也可以创建好链接后，再修改</li>
+<li>eth0 激活后，之前的 ens33 连接会变为非活跃状态</li>
+<li>设备是否（例如开机）自动连接可以通过 <code>nmcli d set &lt;ifname&gt; [autoconnect yes|no] [managed yes|no]</code> 来配置</li>
+</ul>
+<h2 id="多个-IP"><a href="#多个-IP" class="headerlink" title="多个 IP"></a>多个 IP</h2><p>虽然一个设备只能有一个激活的连接，但这不代表只能有一个 IP，我们可以通过以下方式添加多个 IP</p>
+<h3 id="单连接多-IP"><a href="#单连接多-IP" class="headerlink" title="单连接多 IP"></a>单连接多 IP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nmcli c mod eth0 +ipv4.addr <span class="string">'192.168.7.12/24'</span></span><br><span class="line">nmcli c up eth0</span><br></pre></td></tr></table></figure>
+
+<p>注意，ipv4.addr 前面有一个 <code>+</code> 表示追加，对应的，还可以使用 <code>-</code> 表示移除，而无符号则表示覆盖</p>
+<h3 id="桥接"><a href="#桥接" class="headerlink" title="桥接"></a>桥接</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加桥接连接</span></span><br><span class="line">nmcli c add <span class="built_in">type</span> bridge ifname eth1 con-name eth1</span><br><span class="line"><span class="comment"># 配置 IP</span></span><br><span class="line">nmcli c mod eth1 ipv4.method <span class="string">'manual'</span> ipv4.addr <span class="string">'172.16.1.10/16'</span>  ipv4.gateway <span class="string">'172.16.0.2'</span></span><br><span class="line"><span class="comment"># 激活</span></span><br><span class="line">nmcli c up eth1</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li>type bridge 表示添加一个桥接连接，同时它会自动创建一个桥接设备，形成逻辑上的两个设备，这样我们就可以同时有两个活跃的连接</li>
+</ul>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><h3 id="h"><a href="#h" class="headerlink" title="-h"></a>-h</h3><p>nmcli 拥有很完整的帮助文档，在使用时你可以经常加上 <code>-h</code> 查看。简单来讲，主要就是 connection 和 device 对象的增删改查。</p>
+<h3 id="命令补全"><a href="#命令补全" class="headerlink" title="命令补全"></a>命令补全</h3><p>nmcli 不仅支持命令缩写，还支持 tab 命令补全，前提是安装 <code>bash-completion</code>，可以通过如下命令安装它：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dnf install -y bash-completion</span><br></pre></td></tr></table></figure>
+
+<p>完成后，重新登录一下即可。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://mp.weixin.qq.com/s?__biz=MjM5NzAzMTY4NQ==&mid=2653932241&idx=1&sn=7af8ae2f6283fb67eb9e1cba1e6b277c">基于RHEL8/CentOS8的网络IP配置详解</a></p>
+<p><a href="https://access.redhat.com/documentation/zh-cn/red_hat_enterprise_linux/7/html/networking_guide/sec-network_bridging_using_the_networkmanager_command_line_tool_nmcli">使用 NETWORKMANAGER 命令行工具 NMCLI</a> （由 RedHat 提供的文档，并且提供了中文版）</p>
+</div><div class="article-tags size-small mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/NetworkManager/">NetworkManager</a><a class="link-muted mr-2" rel="tag" href="/tags/NM/">NM</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/08/26/install-docker-on-centos-8/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">在 Centos 8 上安装 Docker</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/07/29/review-mysql/"><span class="level-item">复习 Mysql</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div><script>var disqus_config = function () {
+            this.page.url = 'http://3ks.github.io/2020/08/25/network-manager/';
+            this.page.identifier = 'e933125c-1232-4ee0-bfa9-c1669d7513cf';
+        };
+        (function() {
+            var d = document, s = d.createElement('script');  
+            s.src = '//' + '3ks-dev' + '.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1 is-sticky"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="https://cdn.sguan.top/makrdown/20200714204028.png" alt="3ks"></figure><p class="title is-size-4 is-block line-height-inherit">3ks</p><p class="is-size-6 is-block">1@linux.com</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Earth</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">13</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">21</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">28</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/3ks" target="_blank" rel="noopener">关注我</a></div></div></div><div class="card widget" id="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex" href="#介绍"><span class="mr-2">1</span><span>介绍</span></a></li><li><a class="is-flex" href="#概念"><span class="mr-2">2</span><span>概念</span></a><ul class="menu-list"><li><a class="is-flex" href="#设备（device）"><span class="mr-2">2.1</span><span>设备（device）</span></a></li><li><a class="is-flex" href="#连接（connection）"><span class="mr-2">2.2</span><span>连接（connection）</span></a></li></ul></li><li><a class="is-flex" href="#基本网络配置"><span class="mr-2">3</span><span>基本网络配置</span></a></li><li><a class="is-flex" href="#创建连接"><span class="mr-2">4</span><span>创建连接</span></a></li><li><a class="is-flex" href="#多个-IP"><span class="mr-2">5</span><span>多个 IP</span></a><ul class="menu-list"><li><a class="is-flex" href="#单连接多-IP"><span class="mr-2">5.1</span><span>单连接多 IP</span></a></li><li><a class="is-flex" href="#桥接"><span class="mr-2">5.2</span><span>桥接</span></a></li></ul></li><li><a class="is-flex" href="#其它"><span class="mr-2">6</span><span>其它</span></a><ul class="menu-list"><li><a class="is-flex" href="#h"><span class="mr-2">6.1</span><span>-h</span></a></li><li><a class="is-flex" href="#命令补全"><span class="mr-2">6.2</span><span>命令补全</span></a></li></ul></li><li><a class="is-flex" href="#参考链接"><span class="mr-2">7</span><span>参考链接</span></a></li></ul></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="https://cdn.sguan.top/makrdown/logo.svg" alt="官余棚的博客" height="28"></a><p class="size-small"><span>&copy; 2020 官余棚</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="博客仓库" href="https://github.com/3ks/3ks.dev"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://3ks.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="https://static.sguan.top/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="https://static.sguan.top/js/back_to_top.js" defer></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://static.sguan.top/js/main.js" defer></script> <div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="https://static.sguan.top/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
