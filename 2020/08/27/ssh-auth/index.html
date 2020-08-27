@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.1"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>SSH 之免密登录 - 官余棚的博客</title><meta description="SSH 免密登录以及一些问题的笔记"><meta property="og:type" content="article"><meta property="og:title" content="SSH 之免密登录"><meta property="og:url" content="http://3ks.github.io/2020/08/27/ssh-auth/"><meta property="og:site_name" content="官余棚的博客"><meta property="og:description" content="SSH 免密登录以及一些问题的笔记"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://3ks.github.io/!https:/cdn.sguan.top/markdown/20200827231216.png"><meta property="article:published_time" content="2020-08-27T15:10:26.000Z"><meta property="article:modified_time" content="2020-08-27T15:47:41.296Z"><meta property="article:author" content="官余棚"><meta property="article:tag" content="ssh"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/!https:/cdn.sguan.top/markdown/20200827231216.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://3ks.github.io/2020/08/27/ssh-auth/"},"headline":"官余棚的博客","image":["http://3ks.github.io/!https:/cdn.sguan.top/markdown/20200827231216.png"],"datePublished":"2020-08-27T15:10:26.000Z","dateModified":"2020-08-27T15:47:41.296Z","author":{"@type":"Person","name":"官余棚"},"description":"SSH 免密登录以及一些问题的笔记"}</script><link rel="canonical" href="http://3ks.github.io/2020/08/27/ssh-auth/"><link rel="icon" href="https://cdn.sguan.top/makrdown/favicon.svg"><link rel="stylesheet" href="https://static.sguan.top/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="https://static.sguan.top/css/default.css"> <style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-146442818-2" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'UA-146442818-2');</script><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="https://cdn.sguan.top/makrdown/logo.svg" alt="官余棚的博客" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/about">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="thumbnail" src="/!https:/cdn.sguan.top/markdown/20200827231216.png" alt="SSH 之免密登录"></span></div><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-08-27T15:10:26.000Z" title="2020-08-27T15:10:26.000Z">2020-08-27</time><span class="level-item"><a class="link-muted" href="/categories/ssh/">ssh</a></span><span class="level-item">8 分钟 读完 (大约 1257 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">SSH 之免密登录</h1><div class="content"><p>SSH 免密登录以及一些问题的笔记</p>
+<a id="more"></a>
+
+<h2 id="生成密钥对"><a href="#生成密钥对" class="headerlink" title="生成密钥对"></a>生成密钥对</h2><p>在服务器上生成用于登录的公钥和私钥，最终公钥放于服务器，私钥自己保存使用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+
+<p>首先提示输入生成文件的输出路径，然后是密码，最后是确认密码</p>
+<blockquote>
+<p>密码是用于加密和登录时输入的密码，额，建议为空，不然还叫免密登录吗，但是请确保生成证书的安全，证书泄露可能很危险</p>
+</blockquote>
+<blockquote>
+<p>生产环境强烈建议设置密码，毕竟稳定压倒一切,相当于双重验证吧，需要提供私钥，还要提供密码</p>
+</blockquote>
+<h2 id="导入公钥"><a href="#导入公钥" class="headerlink" title="导入公钥"></a>导入公钥</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置文件、文件夹的权限"><a href="#配置文件、文件夹的权限" class="headerlink" title="配置文件、文件夹的权限"></a>配置文件、文件夹的权限</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chmod -R 0700  ~/.ssh</span><br><span class="line">$ sudo chmod -R 0600  ~/.ssh/authorized_keys</span><br><span class="line">$ sudo chown -R guan:guan /home/guan <span class="comment"># guan 替换为自己的用户名</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="SELinux"><a href="#SELinux" class="headerlink" title="SELinux"></a>SELinux</h2><p>如果启用了 SELinux，还需要执行（root 用户把 /home 改成 /root）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ restorecon -R -v /home</span><br></pre></td></tr></table></figure>
+
+<h2 id="修改-SSH-配置文件"><a href="#修改-SSH-配置文件" class="headerlink" title="修改 SSH 配置文件"></a>修改 SSH 配置文件</h2><p>修改 SSH 配置文件，支持使用证书登录，修改该文件需要 root 权限。</p>
+<p>在 <code>/etc/ssh/sshd_config</code> 文件末尾追加以下内容：</p>
+<figure class="highlight plain"><figcaption><span>/etc/ssh/sshd_config</span><a href="https://www.google.com">查看源文件</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RSAAuthentication yes  #RSA验证方式</span><br><span class="line">StrictModes yes   #严格模式，会检查相关目录的权限,根据自己情况选择</span><br><span class="line">PubkeyAuthentication yes  #允许用户使用自己生成的公私钥</span><br><span class="line">AuthorizedKeysFile .ssh&#x2F;authorized_keys  #公钥地址</span><br><span class="line">PasswordAuthentication no #是否允许通过密码登录</span><br></pre></td></tr></table></figure>
+
+<p>随后重启 SSH 服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart sshd</span><br></pre></td></tr></table></figure>
+
+<h2 id="获取私钥"><a href="#获取私钥" class="headerlink" title="获取私钥"></a>获取私钥</h2><p>在要使用 SSH 登录的客户端在，获取到私钥，可以使用 scp 或者其它方式：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scp guan@192.168.1.2:~/.ssh/rsa ./</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>需要注意的是，在 windows 环境下，不要直接复制粘贴密钥对，这会使其失效。</p>
+</blockquote>
+<p>前面修改了 SSH 配置，并且你恰好禁止的密码登录，此时你可能无法顺利拿到私钥，即：</p>
+<figure class="highlight plain"><figcaption><span>/etc/ssh/sshd_config</span><a href="https://www.google.com">查看源文件</a></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no #是否允许通过密码登录</span><br></pre></td></tr></table></figure>
+
+<p>你可以先将这一项改为 yes，后续再修改回来。</p>
+<h2 id="使用私钥"><a href="#使用私钥" class="headerlink" title="使用私钥"></a>使用私钥</h2><p>拿到私钥后，不同的客户端使用私钥的方式有所不同，不过其原理都是相同的。</p>
+<h3 id="PuTTY"><a href="#PuTTY" class="headerlink" title="PuTTY"></a>PuTTY</h3><h4 id="生成证书"><a href="#生成证书" class="headerlink" title="生成证书"></a>生成证书</h4><p>可以使用 PuTTY Key Generator 生成适用于 Putty 的证书</p>
+<p><img src="https://cdn.sguan.top/markdown/20181121/k1dWVLBE7vkr.png?imageslim" alt="mark"></p>
+<p>选中私钥文件，然后点击保存为私钥 <code>Save private key</code></p>
+<h4 id="使用证书"><a href="#使用证书" class="headerlink" title="使用证书"></a>使用证书</h4><ol>
+<li>打开Putty，加载或者新建一个会话</li>
+<li>点击 <code>connection</code>-&gt;<code>data</code> , 输入 <code>Auto-login username</code> (自动登录的用户名)</li>
+<li><code>connection</code>-&gt;<code>ssh</code>-&gt;<code>auth</code> 在<code>Private key file for authentication</code>选择私钥文件</li>
+<li><code>保存会话</code>，然后直接点击会话即可免密登录</li>
+</ol>
+<p><img src="https://cdn.sguan.top/markdown/20181121/dzLoRV3Uzaao.png?imageslim" alt="mark"></p>
+<h3 id="sh"><a href="#sh" class="headerlink" title="sh"></a>sh</h3><p>对于各种 shell 环境，直接将私钥复制到 <code>~/.ssh/</code> 下，命名为 <code>id_rsa</code> 即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cp id_rsa ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+
+<p>然后便可以直接进行 ssh 登录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh guan@192.168.1.2</span><br></pre></td></tr></table></figure>
+
+<h2 id="公钥部署到多个服务器"><a href="#公钥部署到多个服务器" class="headerlink" title="公钥部署到多个服务器"></a>公钥部署到多个服务器</h2><p>再提醒一下，客户端使用私钥，服务端使用公钥。</p>
+<p>将一份公钥部署到多个服务器，并正确配置，可以使用实现一份私钥免密登录到多个服务器上。当然这相当于将鸡蛋都装到了一个篮子里，安全风险也更大一些。</p>
+<p>我们可以直接在多个服务器之间使用 scp 传输公钥：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh user@host <span class="string">'mkdir -p .ssh &amp;&amp; cat &gt;&gt; .ssh/authorized_keys'</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>需要注意的是，不要直接复制粘贴公钥，很可能出错，导致服务器拒绝登录，特别是 windows 环境下</p>
+</blockquote>
+<h2 id="SSH-登录慢的问题"><a href="#SSH-登录慢的问题" class="headerlink" title="SSH 登录慢的问题"></a>SSH 登录慢的问题</h2><h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><p>OpenSSH 在用户登录的时候会验证 IP，它根据用户的 IP 使用反向 DNS 找到主机名，再使用 DNS 找到 IP 地址，最后匹配一下登录的 IP 是否合法。<br>如果客户机的 IP 没有域名，或者 DNS 服务器很慢或不通，会一直等到DNS超时，SSH 登录慢就体现在这里。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>修改 ssh 的配置文件，关闭 DNS 和 GSSAPI 验证即可加快登陆速度。</p>
+<p>编辑 OpenSSH 的主配置文件 <code>/etc/ssh/sshd_config</code>，在文件末尾追加下面的内容：</p>
+<figure class="highlight plain"><figcaption><span>/etc/ssh/sshd_config</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GSSAPIAuthentication no</span><br><span class="line">UseDNS no</span><br></pre></td></tr></table></figure>
+
+<p>然后重启 SSH 服务，再尝试登录测试一下是否有效。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart sshd</span><br></pre></td></tr></table></figure>
+
+<p>再尝试登录测试一下是否有效。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://my.oschina.net/liting/blog/600098">CentOS 7 SSH使用证书登录</a></p>
+<p><a href="https://blog.51cto.com/callmepeanut/1336864">Putty server refused our key的三种原因和解决方法</a></p>
+<p><a href="http://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html">SSH原理与运用（一）：远程登录</a></p>
+</div><div class="article-tags size-small mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/ssh/">ssh</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/08/27/port-used/"><span class="level-item">port-used</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div><script>var disqus_config = function () {
+            this.page.url = 'http://3ks.github.io/2020/08/27/ssh-auth/';
+            this.page.identifier = '09c5acab-b475-450f-bc6a-d01428c7fbf3';
+        };
+        (function() {
+            var d = document, s = d.createElement('script');  
+            s.src = '//' + '3ks-dev' + '.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1 is-sticky"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="https://cdn.sguan.top/makrdown/20200714204028.png" alt="3ks"></figure><p class="title is-size-4 is-block line-height-inherit">3ks</p><p class="is-size-6 is-block">1@linux.com</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Earth</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">21</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">27</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">32</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/3ks" target="_blank" rel="noopener">关注我</a></div></div></div><div class="card widget" id="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="is-flex" href="#生成密钥对"><span class="mr-2">1</span><span>生成密钥对</span></a></li><li><a class="is-flex" href="#导入公钥"><span class="mr-2">2</span><span>导入公钥</span></a></li><li><a class="is-flex" href="#配置文件、文件夹的权限"><span class="mr-2">3</span><span>配置文件、文件夹的权限</span></a></li><li><a class="is-flex" href="#SELinux"><span class="mr-2">4</span><span>SELinux</span></a></li><li><a class="is-flex" href="#修改-SSH-配置文件"><span class="mr-2">5</span><span>修改 SSH 配置文件</span></a></li><li><a class="is-flex" href="#获取私钥"><span class="mr-2">6</span><span>获取私钥</span></a></li><li><a class="is-flex" href="#使用私钥"><span class="mr-2">7</span><span>使用私钥</span></a><ul class="menu-list"><li><a class="is-flex" href="#PuTTY"><span class="mr-2">7.1</span><span>PuTTY</span></a><ul class="menu-list"><li><a class="is-flex" href="#生成证书"><span class="mr-2">7.1.1</span><span>生成证书</span></a></li><li><a class="is-flex" href="#使用证书"><span class="mr-2">7.1.2</span><span>使用证书</span></a></li></ul></li><li><a class="is-flex" href="#sh"><span class="mr-2">7.2</span><span>sh</span></a></li></ul></li><li><a class="is-flex" href="#公钥部署到多个服务器"><span class="mr-2">8</span><span>公钥部署到多个服务器</span></a></li><li><a class="is-flex" href="#SSH-登录慢的问题"><span class="mr-2">9</span><span>SSH 登录慢的问题</span></a><ul class="menu-list"><li><a class="is-flex" href="#原因"><span class="mr-2">9.1</span><span>原因</span></a></li><li><a class="is-flex" href="#解决方法"><span class="mr-2">9.2</span><span>解决方法</span></a></li></ul></li><li><a class="is-flex" href="#参考链接"><span class="mr-2">10</span><span>参考链接</span></a></li></ul></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="https://cdn.sguan.top/makrdown/logo.svg" alt="官余棚的博客" height="28"></a><p class="size-small"><span>&copy; 2020 官余棚</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="博客仓库" href="https://github.com/3ks/3ks.dev"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://3ks.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="https://static.sguan.top/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="https://static.sguan.top/js/back_to_top.js" defer></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://static.sguan.top/js/main.js" defer></script> <div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="https://static.sguan.top/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
